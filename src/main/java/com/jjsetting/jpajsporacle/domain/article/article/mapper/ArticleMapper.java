@@ -13,57 +13,63 @@ import java.util.Optional;
 @Mapper
 public interface ArticleMapper {
     @Select("""
-            select * from ARTICLE
-            WHERE ID = ${id}
+            SELECT * FROM ARTICLE
+            WHERE ID = #{id}
             """)
     public Optional<Article> findById(long id);
-    default Article save(Article article){
-        if(article.getId() == null){
+
+    default Article save(Article article) {
+        if (article.getId() == null) {
             article.setCreateDate(LocalDateTime.now());
             article.setModifyDate(LocalDateTime.now());
             _insert(article);
         } else {
             article.setModifyDate(LocalDateTime.now());
+            _update(article);
         }
+
         return article;
     }
+
     @Insert("""
-             INSERT INTO ARTICLE (ID,CREATE_DATE,MODIFY_DATE,TITLE_CONTENT)
-             VALUES (ARTICLE_SEQ.NEXTVAL,#{createDate}, #{modifyDate}, #{title}, #{content})
+            INSERT INTO ARTICLE (ID, CREATE_DATE, MODIFY_DATE, TITLE, CONTENT)
+            VALUES (ARTICLE_SEQ.NEXTVAL, #{createDate}, #{modifyDate}, #{title}, #{content})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "ID")
     long _insert(Article article);
 
     @Update("""
+                        
             UPDATE ARTICLE
-            SET MODIFY_DATE = #{modifyDate}, TITLE=#{title}, CONTENT = #{content}
+            SET MODIFY_DATE = #{modifyDate}, TITLE = #{title}, CONTENT = #{content}
             WHERE ID = #{id}
             """)
     void _update(Article article);
 
     @Select("""
-            select *
-            from (
-                select A.*,
-                ROW_NUMBER() ORVER(ORDER BY A.ID DESC) RN
+            SELECT *
+            FROM (
+            	SELECT A.*,
+                ROW_NUMBER() OVER(ORDER BY A.ID DESC) RN
                 FROM ARTICLE A
-                ) A
-                WHERE A.RN <= 1
+            ) A
+            WHERE A.RN <= 1
             """)
     Optional<Article> findFirstByOrderByIdDesc();
 
     @Select("""
-            select *
-            from (
-              select A.*,
-              ROW_NUMBER() OVER(ORDER BY A.ID DESC) RN
-             ) A
-             WHERE A.RN <= 3
-             ORDER BY A.RN ASC
+            SELECT *
+            FROM (
+            	SELECT A.*,
+                ROW_NUMBER() OVER(ORDER BY A.ID DESC) RN
+                FROM ARTICLE A
+            ) A
+            WHERE A.RN <= 3
+            ORDER BY A.RN ASC
             """)
     List<Article> findTop3ByOrderByIdDesc();
 
-    default Page<Article> search(List<String> kwTypes,String kw,Pageable pageable){
+    default Page<Article> search(List<String> kwTypes, String kw, Pageable pageable) {
         String title = kwTypes.contains("title") ? kw : null;
         String content = kwTypes.contains("content") ? kw : null;
 
@@ -86,31 +92,30 @@ public interface ArticleMapper {
                 OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
             </if>
             """)
-    long _searchCount(String title,String content);
+    long _searchCount(String title, String content);
 
     @Select("""
             <script>
-                SELECT *
-                            FROM (
-                                SELECT A.*,
-                                DENSE_RANK() OVER(ORDER BY A.ID DESC) RN
-                                FROM ARTICLE A
-                                WHERE 1 != 1
-                                <if test='title != null || content != null'>
-                                    OR 1 = 1
-                                </if>
-                                <if test='title != null'>
-                                    OR LOWER(A.TITLE) LIKE '%' || LOWER(#{title}) || '%'
-                                </if>
-                                <if test='content != null'>
-                                    OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
-                                </if>
-                            ) A
-                            WHERE <![CDATA[ A.RN <= #{offsetPlusLimit} ]]>
-                            AND <![CDATA[ A.RN > #{offset} ]]>
-                            ORDER BY A.RN
-                            </script>
+            SELECT *
+            FROM (
+                SELECT A.*,
+                DENSE_RANK() OVER(ORDER BY A.ID DESC) RN
+                FROM ARTICLE A
+                WHERE 1 != 1
+                <if test='title != null || content != null'>
+                    OR 1 = 1
+                </if>
+                <if test='title != null'>
+                    OR LOWER(A.TITLE) LIKE '%' || LOWER(#{title}) || '%'
+                </if>
+                <if test='content != null'>
+                    OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
+                </if>
+            ) A
+            WHERE <![CDATA[ A.RN <= #{offsetPlusLimit} ]]>
+            AND <![CDATA[ A.RN > #{offset} ]]>
+            ORDER BY A.RN
             </script>
             """)
-    List<Article> _searchRows(String title,String content,long offset,long offsetPlusLimit);
+    List<Article> _searchRows(String title, String content, long offset, long offsetPlusLimit);
 }
