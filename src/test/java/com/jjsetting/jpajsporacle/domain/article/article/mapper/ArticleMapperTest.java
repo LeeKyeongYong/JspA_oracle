@@ -22,20 +22,20 @@ import java.util.Optional;
 public class ArticleMapperTest {
 
     @Autowired
-    private ArticleRepository articleRepository;
+    private ArticleMapper articleMapper;
 
     @DisplayName("findFirstByOrderByIdDesc")
     @Test
     void findFirstByOrderByIdDesc(){
-        Optional<Article> articleOp = articleRepository.findFirstByOrderByIdDesc();
+        Optional<Article> articleOp = articleMapper.findFirstByOrderByIdDesc();
         assertThat(articleOp.isPresent()).isTrue();
     }
 
     @DisplayName("findTop3BOrderByIdDesc")
     @Test
     void findTop3BOrderByIdDesc(){
-        List<Article> articles = articleRepository.findTop3ByOrderByIdDesc();
-        Article latestArticle  = articleRepository.findFirstByOrderByIdDesc().get();
+        List<Article> articles = articleMapper.findTop3ByOrderByIdDesc();
+        Article latestArticle  = articleMapper.findFirstByOrderByIdDesc().get();
 
         long idLast = latestArticle.getId();
         long idSecondLast = idLast - 1;
@@ -55,7 +55,7 @@ public class ArticleMapperTest {
         sorts.add(Sort.Order.desc("id"));
         Pageable pageable = PageRequest.of(page-1,10,Sort.by(sorts));
 
-        Page<Article> articlePage = articleRepository.search(
+        Page<Article> articlePage = articleMapper.search(
                 List.of("title","content"),
                 "제목",
                 pageable
@@ -63,5 +63,23 @@ public class ArticleMapperTest {
         assertThat(articlePage.getContent())
                 .extracting(Article::getTitle)
                 .containsSequence("제목 4","제목 3","제목 2","제목 1");
+    }
+
+    @DisplayName("search2")
+    @Test
+    void search2(){
+        int page=1;
+        List<Sort.Order> sorts = new ArrayList<>();
+        sorts.add(Sort.Order.desc("id"));
+        Pageable pageable = PageRequest.of(page-1,10,Sort.by(sorts));
+        Page<Article> articlePage = articleMapper.search(
+                List.of("title","content"),
+                "제목",
+                pageable
+        );
+
+        assertThat(articlePage.getContent())
+                .extracting(Article::getTitle)
+                .containsSubsequence("제목4","제목3","제목2","제목1");
     }
 }

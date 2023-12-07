@@ -51,7 +51,7 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom{
         }
 
         JPAQuery<Article>  articlesQuery = jpaQueryFactory
-                .selectDistinct(article)
+                .select(article)
                 .from(article)
                 .where(builder);
 
@@ -63,7 +63,7 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom{
         articlesQuery.offset(pageable.getOffset()).stream().limit(pageable.getPageSize());
 
         JPAQuery<Long> totalQuery = jpaQueryFactory
-                .select(article.countDistinct())
+                .select(article.count())
                 .from(article)
                 .where(builder);
 
