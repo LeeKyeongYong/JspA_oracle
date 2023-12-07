@@ -64,43 +64,52 @@ public interface ArticleMapper {
     List<Article> findTop3ByOrderByIdDesc();
 
     default Page<Article> search(List<String> kwTypes,String kw,Pageable pageable){
-        String title = kwTypes.contains("title") ? kw:null;
-        String content = kwTypes.contains("content") ? kw: null;
-        List<Article> articles = _searchRows(title,content,pageable.getOffset(),pageable.getOffset()+pageable.getPageSize());
-        return PageableExecutionUtils.getPage(articles,pageable,()->_searchCount(title,content));
+        String title = kwTypes.contains("title") ? kw : null;
+        String content = kwTypes.contains("content") ? kw : null;
+
+        List<Article> articles = _searchRows(title, content, pageable.getOffset(), pageable.getOffset() + pageable.getPageSize());
+
+        return PageableExecutionUtils.getPage(articles, pageable, () -> _searchCount(title, content));
     }
 
     @Select("""
-            select count(*)
-            from article A
-            where 1!=1
+            SELECT COUNT(*)
+            FROM ARTICLE A
+            WHERE 1 != 1
+            <if test='title != null || content != null'>
+                OR 1 = 1
+            </if>
             <if test='title != null'>
                 OR LOWER(A.TITLE) LIKE '%' || LOWER(#{title}) || '%'
             </if>
             <if test='content != null'>
-                or lower(A.CONTENT) like '%' || LOWER(#{content}) || '%'
+                OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
             </if>
             """)
     long _searchCount(String title,String content);
 
     @Select("""
             <script>
-                select *
-                from (
-                   select A.*,
-                    DENSE_RANK() OVER(ORDER BY A.ID DESC) RN
-                   FROM ARTICLE A
-                   WHERE 1 != 1
-                   <if test='title != null '>
-                        OR LOWER(A.TITLE) LIKE '%' || LOWER(#{title}) || '%'
-                   </if>
-                   <if test ='content != null'>
-                     OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
-                   </if>
-                   ) A
-                   WHERE <![CDATA[ A.RN <= #{offsetPlusLimit} ]]>
-                   AND <![CDATA[ A.RN > #{offset} ]]>
-                   ORDER BY A.RN
+                SELECT *
+                            FROM (
+                                SELECT A.*,
+                                DENSE_RANK() OVER(ORDER BY A.ID DESC) RN
+                                FROM ARTICLE A
+                                WHERE 1 != 1
+                                <if test='title != null || content != null'>
+                                    OR 1 = 1
+                                </if>
+                                <if test='title != null'>
+                                    OR LOWER(A.TITLE) LIKE '%' || LOWER(#{title}) || '%'
+                                </if>
+                                <if test='content != null'>
+                                    OR LOWER(A.CONTENT) LIKE '%' || LOWER(#{content}) || '%'
+                                </if>
+                            ) A
+                            WHERE <![CDATA[ A.RN <= #{offsetPlusLimit} ]]>
+                            AND <![CDATA[ A.RN > #{offset} ]]>
+                            ORDER BY A.RN
+                            </script>
             </script>
             """)
     List<Article> _searchRows(String title,String content,long offset,long offsetPlusLimit);

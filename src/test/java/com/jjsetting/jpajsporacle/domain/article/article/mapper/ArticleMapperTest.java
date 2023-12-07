@@ -68,12 +68,12 @@ public class ArticleMapperTest {
     @DisplayName("search2")
     @Test
     void search2(){
-        int page=1;
+        int page = 1;
         List<Sort.Order> sorts = new ArrayList<>();
         sorts.add(Sort.Order.desc("id"));
-        Pageable pageable = PageRequest.of(page-1,10,Sort.by(sorts));
+        Pageable pageable = PageRequest.of(page - 1, 10, Sort.by(sorts));
         Page<Article> articlePage = articleMapper.search(
-                List.of("title","content"),
+                List.of("title", "content"),
                 "제목",
                 pageable
         );
