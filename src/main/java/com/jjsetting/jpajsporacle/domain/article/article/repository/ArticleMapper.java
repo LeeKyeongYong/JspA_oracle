@@ -36,4 +36,15 @@ public interface ArticleMapper {
             WHERE ID = #{id}
             """)
     void _update(Article article);
+
+    @Select("""
+            select *
+            from (
+                select A.*,
+                ROW_NUMBER() ORVER(ORDER BY A.ID DESC) RN
+                FROM ARTICLE A
+                ) A
+                WHERE A.RN <= 1
+            """)
+    Optional<Article> findFirstByOrderByIdDesc();
 }
