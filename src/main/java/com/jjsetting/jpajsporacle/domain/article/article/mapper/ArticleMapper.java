@@ -1,4 +1,4 @@
-package com.jjsetting.jpajsporacle.domain.article.article.repository;
+package com.jjsetting.jpajsporacle.domain.article.article.mapper;
 
 import com.jjsetting.jpajsporacle.domain.article.article.entity.Article;
 import org.apache.ibatis.annotations.*;

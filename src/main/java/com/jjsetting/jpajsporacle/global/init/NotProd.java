@@ -1,7 +1,7 @@
 package com.jjsetting.jpajsporacle.global.init;
 
 import com.jjsetting.jpajsporacle.domain.article.article.entity.Article;
-import com.jjsetting.jpajsporacle.domain.article.article.repository.ArticleMapper;
+import com.jjsetting.jpajsporacle.domain.article.article.mapper.ArticleMapper;
 import com.jjsetting.jpajsporacle.domain.article.article.service.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationRunner;
